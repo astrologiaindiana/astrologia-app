@@ -1,0 +1,3097 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astrologia Indiana</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Airtable SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.1/build/airtable.browser.js"></script>
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+    /* 
+     * Estilos principais da aplicação Astrologia Indiana
+     * Design responsivo mobile-first com cores e estilos inspirados na cultura indiana
+     */
+
+    /* Variáveis CSS para cores e estilos consistentes */
+    :root {
+      --color-primary: #8e6c3e; /* Dourado suave */
+      --color-secondary: #5a7d7c; /* Verde acinzentado */
+      --color-accent: #c17f46; /* Terroso alaranjado */
+      --color-background: #f8f5f0; /* Bege claro */
+      --color-text: #3a3a3a; /* Quase preto */
+      --color-light: #f9f6f2; /* Bege mais claro */
+      --color-error: #d9534f; /* Vermelho */
+      --color-success: #5cb85c; /* Verde */
+      --color-warning: #f0ad4e; /* Amarelo */
+      --border-radius: 4px;
+      --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1 );
+      --transition: all 0.3s ease;
+    }
+
+    /* Reset e estilos base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hind', sans-serif;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    h1, h2, h3, h4 {
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    a {
+      color: var(--color-secondary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Utilitários */
+    .hidden {
+      display: none !important;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 1rem;
+      color: var(--color-secondary);
+    }
+
+    .error-message {
+      color: var(--color-error);
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .success-message {
+      color: var(--color-success);
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 1rem;
+      color: var(--color-text);
+      font-style: italic;
+    }
+
+    /* Layout principal */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tela de Login */
+    #login-screen {
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, var(--color-background) 0%, #e8dfd0 100%);
+      padding: 1rem;
+    }
+
+    .login-container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-container h1 {
+      margin-bottom: 2rem;
+      color: var(--color-primary);
+    }
+
+    /* Tela principal do app */
+    #app-screen {
+      background-color: var(--color-background);
+    }
+
+    header {
+      background-color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--box-shadow);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    nav {
+      background-color: var(--color-light);
+      padding: 0.5rem;
+      display: flex;
+      overflow-x: auto;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 1rem;
+      white-space: nowrap;
+      color: var(--color-text);
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .nav-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+    }
+
+    .content-section {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: var(--color-light);
+      color: var(--color-text);
+      font-size: 0.9rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    /* Formulários */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--color-secondary);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input {
+      width: auto;
+    }
+
+    .checkbox-group label {
+      margin: 0;
+    }
+
+    /* Botões */
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-secondary);
+    }
+
+    .btn-danger {
+      background-color: var(--color-error);
+    }
+
+    .btn-action {
+      background-color: var(--color-accent);
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* Tabelas */
+    .table-responsive {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      font-weight: 500;
+      background-color: var(--color-light);
+    }
+
+    tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Seção de Clientes */
+    .clientes-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .clientes-list {
+      background-color: var(--color-light);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .clientes-list ul {
+      list-style: none;
+    }
+
+    .clientes-list li {
+      padding: 0.75rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .clientes-list li:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .clientes-list li.active {
+      background-color: rgba(142, 108, 62, 0.1);
+      font-weight: 500;
+    }
+
+    .cliente-details {
+      background-color: var(--color-light);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+    }
+
+    /* Responsividade */
+    @media (min-width: 768px) {
+      .clientes-container {
+        flex-direction: row;
+      }
+      
+      .clientes-list {
+        flex: 1;
+      }
+      
+      .cliente-details {
+        flex: 2;
+      }
+      
+      .btn-action {
+        min-width: 120px;
+      }
+    }
+
+    @media (min-width: 992px) {
+      main {
+        padding: 2rem;
+      }
+      
+      .content-section {
+        padding: 2rem;
+      }
+    }
+    </style>
+</head>
+<body>
+    <!-- Container principal -->
+    <div id="app">
+        <!-- Tela de Login (visível inicialmente) -->
+        <div id="login-screen" class="screen">
+            <div class="login-container">
+                <h1>Astrologia Indiana</h1>
+                <form id="login-form">
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder="E-mail" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Senha" required>
+                    </div>
+                    <div id="login-error" class="error-message"></div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tela principal do app (oculta inicialmente) -->
+        <div id="app-screen" class="screen hidden">
+            <header>
+                <h1>Astrologia Indiana</h1>
+                <div class="user-info">
+                    <span id="user-email"></span>
+                    <button id="logout-btn" class="btn btn-danger">Sair</button>
+                </div>
+            </header>
+
+            <nav>
+                <button id="nav-fila-mapas" class="nav-btn active">Fila de Mapas</button>
+                <button id="nav-registrar-venda" class="nav-btn">Registrar Venda</button>
+                <button id="nav-clientes" class="nav-btn">Clientes</button>
+            </nav>
+
+            <!-- Conteúdo das seções (apenas uma visível por vez) -->
+            <main>
+                <!-- Fila de Mapas -->
+                <section id="fila-mapas-section" class="content-section">
+                    <h2>Fila de Mapas Astrológicos</h2>
+                    <div id="mapas-loading" class="loading">A carregar fila de mapas...</div>
+                    <div id="mapas-error" class="error-message"></div>
+                    <div id="mapas-table-container" class="table-responsive">
+                        <table id="mapas-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Data Compra</th>
+                                    <th>Tipo Mapa</th>
+                                    <th>Status</th>
+                                    <th>Responsável</th>
+                                    <th>WhatsApp</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mapas-table-body">
+                                <!-- Preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="mapas-empty" class="empty-message hidden">Nenhum mapa pendente encontrado.</div>
+                </section>
+
+                <!-- Registrar Venda -->
+                <section id="registrar-venda-section" class="content-section hidden">
+                    <h2>Registrar Nova Venda</h2>
+                    <div id="tipos-mapa-loading" class="loading">A carregar tipos de mapa...</div>
+                    <form id="venda-form">
+                        <div class="form-group">
+                            <label for="nome-cliente">Nome Completo Cliente:*</label>
+                            <input type="text" id="nome-cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="whatsapp-cliente">Número WhatsApp Cliente:*</label>
+                            <input type="text" id="whatsapp-cliente" placeholder="Ex: 11987654321" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo-mapa">Tipo de Mapa:*</label>
+                            <select id="tipo-mapa" required>
+                                <!-- Preenchido via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="data-nascimento">Data Nascimento Cliente:</label>
+                            <input type="date" id="data-nascimento">
+                        </div>
+                        <div class="form-group">
+                            <label for="hora-nascimento">Hora Nascimento Cliente:</label>
+                            <input type="time" id="hora-nascimento">
+                        </div>
+                        <div class="form-group">
+                            <label for="local-nascimento">Local Nascimento Cliente:</label>
+                            <input type="text" id="local-nascimento" placeholder="Cidade, Estado, País">
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="requer-video">
+                            <label for="requer-video">Requer Videochamada?</label>
+                        </div>
+                        <div id="venda-error" class="error-message"></div>
+                        <div id="venda-success" class="success-message"></div>
+                        <button type="submit" id="registrar-venda-btn" class="btn btn-primary">Registrar Venda</button>
+                    </form>
+                </section>
+
+                <!-- Clientes -->
+                <section id="clientes-section" class="content-section hidden">
+                    <h2>Gestão de Clientes</h2>
+                    <div id="clientes-loading" class="loading">A carregar clientes...</div>
+                    <div id="clientes-error" class="error-message"></div>
+                    <div class="clientes-container">
+                        <div class="clientes-list">
+                            <h3>Lista de Clientes</h3>
+                            <ul id="clientes-list">
+                                <!-- Preenchido via JavaScript -->
+                            </ul>
+                            <div id="clientes-empty" class="empty-message hidden">Nenhum cliente encontrado.</div>
+                        </div>
+                        <div class="cliente-details">
+                            <h3>Detalhes do Cliente</h3>
+                            <div id="cliente-details-placeholder">Selecione um cliente da lista para ver os detalhes.</div>
+                            <div id="cliente-details-content" class="hidden">
+                                <p><strong>Nome:</strong> <span id="cliente-nome"></span></p>
+                                <p>
+                                    <strong>WhatsApp:</strong> <span id="cliente-whatsapp"></span>
+                                    <button id="cliente-whatsapp-btn" class="btn btn-action">Abrir WhatsApp</button>
+                                </p>
+                                
+                                <h4>Histórico de Compras</h4>
+                                <div id="historico-loading" class="loading hidden">A carregar histórico...</div>
+                                <div id="historico-table-container" class="table-responsive">
+                                    <table id="historico-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data Compra</th>
+                                                <th>Tipo Mapa</th>
+                                                <th>Preço Pago</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historico-table-body">
+                                            <!-- Preenchido via JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="historico-empty" class="empty-message hidden">Nenhuma compra registrada para este cliente.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                Astrologia Indiana App - v1.0
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    /**
+     * Configurações de Firebase e Airtable
+     * Contém as credenciais e configurações necessárias para as integrações
+     */
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAngAB_zoXr5lsi1N8WocVJeHFq6QjdUUs",
+      authDomain: "astrologia-indiana-app.firebaseapp.com",
+      projectId: "astrologia-indiana-app",
+      storageBucket: "astrologia-indiana-app.firebasestorage.app",
+      messagingSenderId: "1055729827966",
+      appId: "1:1055729827966:web:51954b0cabee762653d82f",
+      measurementId: "G-E1BSNLPJJF"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Configuração do Airtable
+    const AIRTABLE_API_KEY = 'patkcHF16ytjQFYtf.2d2b97aeab44b5961a1c7e4c68e6f5e2bdef0b81f2cd0303dc2580f9d96df10d';
+    const AIRTABLE_BASE_ID = 'appc74NoitSC8w1XQ';
+
+    // Inicializa o Airtable
+    Airtable.configure({ apiKey: AIRTABLE_API_KEY });
+    const airtableBase = Airtable.base(AIRTABLE_BASE_ID);
+
+    // Exporta as configurações para uso em outros módulos
+    window.firebaseAuth = firebase.auth();
+    window.airtableBase = airtableBase;
+
+    /**
+     * Módulo de Autenticação
+     * Gerencia login, logout e estado do utilizador com Firebase Auth
+     * 
+     * Nota: Para testes locais via file://, a autenticação Firebase pode não funcionar corretamente
+     * devido a restrições de segurança. Para testes completos, recomenda-se usar um servidor local
+     * como http-server, live-server ou similar.
+     */
+
+    // Referências aos elementos do DOM relacionados à autenticação
+    const loginScreen = document.getElementById('login-screen' );
+    const appScreen = document.getElementById('app-screen');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const userEmail = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // Credenciais para simulação de login em ambiente local (file://)
+    const MOCK_USERS = [
+        { email: 'conrado@astrologiaindiana.com', password: 'senha123' },
+        { email: 'kavi@astrologiaindiana.com', password: 'senha123' }
+    ];
+
+    // Flag para determinar se deve usar autenticação simulada
+    const USE_MOCK_AUTH = true; // Altere para false em ambiente de produção
+
+    /**
+     * Inicializa o módulo de autenticação
+     * Configura listeners e verifica estado de autenticação
+     */
+    function initAuth() {
+        // Listener para o formulário de login
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // Listener para o botão de logout
+        logoutBtn.addEventListener('click', handleLogout);
+        
+        if (!USE_MOCK_AUTH) {
+            // Monitorar mudanças no estado de autenticação (Firebase)
+            firebaseAuth.onAuthStateChanged(handleAuthStateChange);
+        } else {
+            // Verificar se há um usuário simulado na sessão
+            const mockUser = sessionStorage.getItem('mockUser');
+            if (mockUser) {
+                handleAuthStateChange({ email: mockUser });
+            }
+        }
+    }
+
+    /**
+     * Trata o evento de submissão do formulário de login
+     * @param {Event} e - Evento de submissão do formulário
+     */
+    async function handleLogin(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Limpa mensagens de erro anteriores
+        loginError.textContent = '';
+        
+        if (USE_MOCK_AUTH) {
+            // Autenticação simulada para ambiente local
+            const user = MOCK_USERS.find(u => u.email === email && u.password === password);
+            if (user) {
+                // Simula login bem-sucedido
+                sessionStorage.setItem('mockUser', email);
+                handleAuthStateChange({ email: email });
+            } else {
+                loginError.textContent = 'Falha no login. Verifique o e-mail e a senha.';
+            }
+        } else {
+            try {
+                // Tenta fazer login com Firebase Auth
+                await firebaseAuth.signInWithEmailAndPassword(email, password);
+                // O redirecionamento é tratado pelo listener onAuthStateChanged
+            } catch (error) {
+                console.error('Erro de login:', error);
+                loginError.textContent = 'Falha no login. Verifique o e-mail e a senha.';
+            }
+        }
+    }
+
+    /**
+     * Trata o evento de clique no botão de logout
+     */
+    async function handleLogout() {
+        if (USE_MOCK_AUTH) {
+            // Logout simulado
+            sessionStorage.removeItem('mockUser');
+            handleAuthStateChange(null);
+        } else {
+            try {
+                await firebaseAuth.signOut();
+                // O redirecionamento é tratado pelo listener onAuthStateChanged
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                alert('Erro ao fazer logout. Tente novamente.');
+            }
+        }
+    }
+
+    /**
+     * Trata mudanças no estado de autenticação
+     * @param {Object} user - Objeto do utilizador autenticado ou null
+     */
+    function handleAuthStateChange(user) {
+        if (user) {
+            // Utilizador está autenticado
+            console.log('Utilizador autenticado:', user.email);
+            
+            // Atualiza a interface para mostrar o e-mail do utilizador
+            userEmail.textContent = user.email;
+            
+            // Mostra a tela principal e esconde a tela de login
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            
+            // Carrega os dados iniciais da aplicação
+            window.loadInitialData && window.loadInitialData();
+        } else {
+            // Utilizador não está autenticado
+            console.log('Utilizador não autenticado');
+            
+            // Mostra a tela de login e esconde a tela principal
+            loginScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+            
+            // Limpa os campos do formulário de login
+            loginForm.reset();
+        }
+    }
+
+    // Exporta a função de inicialização para uso no app.js
+    window.initAuth = initAuth;
+
+    /**
+     * Módulo de integração com Airtable
+     * Gerencia todas as operações de leitura e escrita na base Airtable
+     */
+
+    /**
+     * Busca todos os mapas da tabela Mapas
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchMapas(callback) {
+        const mapas = [];
+        
+        airtableBase('Mapas').select({
+            sort: [{ field: 'Data Compra', direction: 'desc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    mapas.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar mapas:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, mapas);
+            }
+        );
+    }
+
+    /**
+     * Atualiza o status de um mapa para "Enviado"
+     * @param {string} recordId - ID do registro a ser atualizado
+     * @param {Function} callback - Função de callback após a atualização
+     */
+    function marcarMapaComoEnviado(recordId, callback) {
+        airtableBase('Mapas').update([
+            {
+                "id": recordId,
+                "fields": {
+                    "Status": "Enviado"
+                }
+            }
+        ], function(err, records) {
+            if (err) {
+                console.error('Erro ao atualizar status:', err);
+                callback(err, null);
+                return;
+            }
+            callback(null, records[0]);
+        });
+    }
+
+    /**
+     * Busca todos os tipos de mapa disponíveis
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchTiposMapa(callback) {
+        const tipos = [];
+        
+        airtableBase('TiposDeMapa').select({
+            sort: [{ field: 'Nome Mapa', direction: 'asc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    tipos.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar tipos de mapa:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, tipos);
+            }
+        );
+    }
+
+    /**
+     * Registra uma nova venda de mapa
+     * @param {Object} vendaData - Dados da venda a ser registrada
+     * @param {Function} callback - Função de callback após o registro
+     */
+    function registrarVenda(vendaData, callback) {
+        airtableBase('Mapas').create([
+            {
+                fields: vendaData
+            }
+        ], function(err, records) {
+            if (err) {
+                console.error('Erro ao registrar venda:', err);
+                callback(err, null);
+                return;
+            }
+            callback(null, records[0]);
+        });
+    }
+
+    /**
+     * Busca todos os clientes
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchClientes(callback) {
+        const clientes = [];
+        
+        airtableBase('Clientes').select({
+            sort: [{ field: 'Nome Completo', direction: 'asc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    clientes.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar clientes:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, clientes);
+            }
+        );
+    }
+
+    /**
+     * Busca o histórico de compras de um cliente específico
+     * @param {string} clienteId - ID do cliente
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchHistoricoCompras(clienteId, callback) {
+        // Primeiro, busca o cliente para obter os IDs dos mapas relacionados
+        airtableBase('Clientes').find(clienteId, function(err, record) {
+            if (err) {
+                console.error('Erro ao buscar detalhes do cliente:', err);
+                callback(err, null);
+                return;
+            }
+            
+            const mapasIds = record.get('Histórico Compras');
+            if (!mapasIds || mapasIds.length === 0) {
+                // Cliente não tem histórico de compras
+                callback(null, []);
+                return;
+            }
+            
+            // Cria uma fórmula para filtrar apenas os mapas relacionados
+            const filterFormula = "OR(" + mapasIds.map(id => `RECORD_ID()='${id}'`).join(',') + ")";
+            
+            const compras = [];
+            airtableBase('Mapas').select({
+                filterByFormula: filterFormula,
+                sort: [{ field: 'Data Compra', direction: 'desc' }]
+            }).eachPage(
+                function page(records, fetchNextPage) {
+                    records.forEach(function(record) {
+                        compras.push({
+                            id: record.id,
+                            ...record.fields
+                        });
+                    });
+                    fetchNextPage();
+                },
+                function done(err) {
+                    if (err) {
+                        console.error('Erro ao buscar histórico de compras:', err);
+                        callback(err, null);
+                        return;
+                    }
+                    callback(null, compras);
+                }
+            );
+        });
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.airtableService = {
+        fetchMapas,
+        marcarMapaComoEnviado,
+        fetchTiposMapa,
+        registrarVenda,
+        fetchClientes,
+        fetchHistoricoCompras
+    };
+
+    /**
+     * Módulo de Fila de Mapas
+     * Gerencia a exibição e interação com a lista de mapas astrológicos
+     */
+
+    // Referências aos elementos do DOM
+    const mapasLoading = document.getElementById('mapas-loading');
+    const mapasError = document.getElementById('mapas-error');
+    const mapasTableContainer = document.getElementById('mapas-table-container');
+    const mapasTableBody = document.getElementById('mapas-table-body');
+    const mapasEmpty = document.getElementById('mapas-empty');
+
+    /**
+     * Inicializa o módulo de Fila de Mapas
+     */
+    function initFilaMapas() {
+        // Carrega os mapas ao inicializar
+        loadMapas();
+    }
+
+    /**
+     * Carrega os mapas do Airtable e atualiza a interface
+     */
+    function loadMapas() {
+        // Mostra o indicador de carregamento
+        mapasLoading.classList.remove('hidden');
+        mapasTableContainer.classList.add('hidden');
+        mapasEmpty.classList.add('hidden');
+        mapasError.textContent = '';
+        
+        // Busca os mapas usando o serviço Airtable
+        window.airtableService.fetchMapas(function(err, mapas) {
+            // Esconde o indicador de carregamento
+            mapasLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                mapasError.textContent = 'Erro ao carregar os mapas. Tente novamente mais tarde.';
+                return;
+            }
+            
+            if (mapas.length === 0) {
+                // Exibe mensagem de lista vazia
+                mapasEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Exibe a tabela e preenche com os dados
+            mapasTableContainer.classList.remove('hidden');
+            renderMapasTable(mapas);
+        });
+    }
+
+    /**
+     * Renderiza a tabela de mapas com os dados recebidos
+     * @param {Array} mapas - Lista de mapas a serem exibidos
+     */
+    function renderMapasTable(mapas) {
+        // Limpa o conteúdo atual da tabela
+        mapasTableBody.innerHTML = '';
+        
+        // Adiciona cada mapa à tabela
+        mapas.forEach(mapa => {
+            const row = document.createElement('tr');
+            
+            // Formata a data de compra
+            const dataCompra = mapa['Data Compra'] 
+                ? new Date(mapa['Data Compra']).toLocaleDateString('pt-BR') 
+                : '-';
+            
+            // Cria as células da linha
+            row.innerHTML = `
+                <td>${mapa['Nome Completo Cliente'] || '-'}</td>
+                <td>${dataCompra}</td>
+                <td>${mapa['Tipo Mapa'] || '-'}</td>
+                <td>${mapa['Status'] || '-'}</td>
+                <td>${mapa['Responsável'] || '-'}</td>
+                <td>${mapa['Número WhatsApp Cliente'] || '-'}</td>
+                <td>
+                    <button class="btn btn-action whatsapp-btn" data-numero="${mapa['Número WhatsApp Cliente'] || ''}">
+                        WhatsApp
+                    </button>
+                    ${mapa['Status'] === 'Pendente' ? `
+                        <button class="btn btn-action marcar-enviado-btn" data-id="${mapa.id}">
+                            Marcar Enviado
+                        </button>
+                    ` : ''}
+                </td>
+            `;
+            
+            // Adiciona a linha à tabela
+            mapasTableBody.appendChild(row);
+        });
+        
+        // Adiciona event listeners aos botões
+        addMapasButtonListeners();
+    }
+
+    /**
+     * Adiciona event listeners aos botões da tabela de mapas
+     */
+    function addMapasButtonListeners() {
+        // Botões de WhatsApp
+        document.querySelectorAll('.whatsapp-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const numero = this.getAttribute('data-numero');
+                abrirWhatsApp(numero);
+            });
+        });
+        
+        // Botões de Marcar como Enviado
+        document.querySelectorAll('.marcar-enviado-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                marcarComoEnviado(id);
+            });
+        });
+    }
+
+    /**
+     * Abre o WhatsApp com o número especificado
+     * @param {string} numero - Número de telefone para abrir no WhatsApp
+     */
+    function abrirWhatsApp(numero) {
+        if (!numero) {
+            alert('Número de WhatsApp não encontrado para este cliente.');
+            return;
+        }
+        
+        // Limpa o número (remove caracteres não numéricos)
+        const numeroLimpo = numero.replace(/\D/g, '');
+        
+        // Cria a URL do WhatsApp (assumindo números brasileiros)
+        const whatsappUrl = `https://wa.me/55${numeroLimpo}`;
+        
+        // Abre em uma nova aba
+        window.open(whatsappUrl, '_blank' );
+    }
+
+    /**
+     * Marca um mapa como enviado
+     * @param {string} id - ID do registro a ser atualizado
+     */
+    function marcarComoEnviado(id) {
+        if (!confirm('Tem certeza que deseja marcar este mapa como enviado?')) {
+            return;
+        }
+        
+        // Atualiza o status no Airtable
+        window.airtableService.marcarMapaComoEnviado(id, function(err, record) {
+            if (err) {
+                alert('Erro ao atualizar o status do mapa.');
+                return;
+            }
+            
+            alert('Mapa marcado como enviado com sucesso!');
+            
+            // Recarrega a lista de mapas
+            loadMapas();
+        });
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.filaMapasModule = {
+        init: initFilaMapas,
+        loadMapas: loadMapas
+    };
+
+    /**
+     * Módulo de Registrar Venda
+     * Gerencia o formulário e processo de registro de novas vendas
+     */
+
+    // Referências aos elementos do DOM
+    const tiposMapaLoading = document.getElementById('tipos-mapa-loading');
+    const vendaForm = document.getElementById('venda-form');
+    const tipoMapaSelect = document.getElementById('tipo-mapa');
+    const nomeClienteInput = document.getElementById('nome-cliente');
+    const whatsappClienteInput = document.getElementById('whatsapp-cliente');
+    const dataNascimentoInput = document.getElementById('data-nascimento');
+    const horaNascimentoInput = document.getElementById('hora-nascimento');
+    const localNascimentoInput = document.getElementById('local-nascimento');
+    const requerVideoCheckbox = document.getElementById('requer-video');
+    const vendaError = document.getElementById('venda-error');
+    const vendaSuccess = document.getElementById('venda-success');
+    const registrarVendaBtn = document.getElementById('registrar-venda-btn');
+
+    // Armazena os tipos de mapa carregados
+    let tiposMapa = [];
+
+    /**
+     * Inicializa o módulo de Registrar Venda
+     */
+    function initRegistrarVenda() {
+        // Carrega os tipos de mapa ao inicializar
+        loadTiposMapa();
+        
+        // Adiciona listener para o formulário
+        vendaForm.addEventListener('submit', handleSubmitVenda);
+    }
+
+    /**
+     * Carrega os tipos de mapa do Airtable e preenche o select
+     */
+    function loadTiposMapa() {
+        // Mostra o indicador de carregamento
+        tiposMapaLoading.classList.remove('hidden');
+        tipoMapaSelect.disabled = true;
+        
+        // Busca os tipos de mapa usando o serviço Airtable
+        window.airtableService.fetchTiposMapa(function(err, tipos) {
+            // Esconde o indicador de carregamento
+            tiposMapaLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                vendaError.textContent = 'Erro ao carregar os tipos de mapa. Tente novamente mais tarde.';
+                return;
+            }
+            
+            // Armazena os tipos para uso posterior
+            tiposMapa = tipos;
+            
+            // Habilita o select
+            tipoMapaSelect.disabled = false;
+            
+            // Preenche o select com os tipos de mapa
+            populateTipoMapaSelect(tipos);
+        });
+    }
+
+    /**
+     * Preenche o select de tipos de mapa
+     * @param {Array} tipos - Lista de tipos de mapa
+     */
+    function populateTipoMapaSelect(tipos) {
+        // Limpa as opções atuais
+        tipoMapaSelect.innerHTML = '';
+        
+        // Adiciona cada tipo como uma opção
+        tipos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.id;
+            option.textContent = `${tipo['Nome Mapa']} (R$ ${tipo['Preço (R$)']})`;
+            tipoMapaSelect.appendChild(option);
+        });
+    }
+
+    /**
+     * Trata o evento de submissão do formulário de venda
+     * @param {Event} e - Evento de submissão do formulário
+     */
+    function handleSubmitVenda(e) {
+        e.preventDefault();
+        
+        // Limpa mensagens anteriores
+        vendaError.textContent = '';
+        vendaSuccess.textContent = '';
+        
+        // Valida campos obrigatórios
+        if (!nomeClienteInput.value || !whatsappClienteInput.value || !tipoMapaSelect.value) {
+            vendaError.textContent = 'Preencha todos os campos obrigatórios (Nome, WhatsApp, Tipo Mapa).';
+            return;
+        }
+        
+        // Desabilita o botão para evitar submissões duplicadas
+        registrarVendaBtn.disabled = true;
+        registrarVendaBtn.textContent = 'A registrar...';
+        
+        // Encontra o tipo de mapa selecionado
+        const tipoMapaSelecionado = tiposMapa.find(tipo => tipo.id === tipoMapaSelect.value);
+        if (!tipoMapaSelecionado) {
+            vendaError.textContent = 'Tipo de mapa selecionado inválido.';
+            resetSubmitButton();
+            return;
+        }
+        
+        // Determina o responsável com base no e-mail do usuário logado
+        const userEmail = document.getElementById('user-email').textContent;
+        const responsavel = userEmail === 'kavi@astrologiaindiana.com' ? 'Kavi' : 'Conrado';
+        
+        // Prepara os dados da venda
+        const vendaData = {
+            'Nome Completo Cliente': nomeClienteInput.value,
+            'Número WhatsApp Cliente': whatsappClienteInput.value,
+            'Data Compra': new Date().toISOString().split('T')[0], // Data atual
+            'Tipo Mapa': [tipoMapaSelect.value], // Link para TiposDeMapa
+            'Preço Registrado': tipoMapaSelecionado['Preço (R$)'],
+            'Responsável': responsavel,
+            'Status': 'Pendente'
+        };
+        
+        // Adiciona campos opcionais se preenchidos
+        if (dataNascimentoInput.value) {
+            vendaData['Data Nascimento Cliente'] = dataNascimentoInput.value;
+        }
+        
+        if (horaNascimentoInput.value) {
+            vendaData['Hora Nascimento Cliente'] = horaNascimentoInput.value;
+        }
+        
+        if (localNascimentoInput.value) {
+            vendaData['Local Nascimento Cliente'] = localNascimentoInput.value;
+        }
+        
+        vendaData['Requer Videochamada'] = requerVideoCheckbox.checked;
+        
+        // Registra a venda no Airtable
+        window.airtableService.registrarVenda(vendaData, function(err, record) {
+            // Restaura o botão
+            resetSubmitButton();
+            
+            if (err) {
+                vendaError.textContent = 'Erro ao registrar a venda. Tente novamente.';
+                return;
+            }
+            
+            // Exibe mensagem de sucesso
+            vendaSuccess.textContent = `Venda para ${record.fields['Nome Completo Cliente']} registrada com sucesso!`;
+            
+            // Limpa o formulário
+            vendaForm.reset();
+            
+            // Recarrega os tipos de mapa para garantir que o select seja preenchido novamente
+            loadTiposMapa();
+            
+            // Atualiza a lista de mapas se estiver visível
+            if (window.filaMapasModule && !document.getElementById('fila-mapas-section').classList.contains('hidden')) {
+                window.filaMapasModule.loadMapas();
+            }
+        });
+    }
+
+    /**
+     * Restaura o botão de submissão para o estado normal
+     */
+    function resetSubmitButton() {
+        registrarVendaBtn.disabled = false;
+        registrarVendaBtn.textContent = 'Registrar Venda';
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.registrarVendaModule = {
+        init: initRegistrarVenda
+    };
+
+    /**
+     * Módulo de Clientes
+     * Gerencia a exibição e interação com a lista de clientes e seus históricos
+     */
+
+    // Referências aos elementos do DOM
+    const clientesLoading = document.getElementById('clientes-loading');
+    const clientesError = document.getElementById('clientes-error');
+    const clientesList = document.getElementById('clientes-list');
+    const clientesEmpty = document.getElementById('clientes-empty');
+    const clienteDetailsPlaceholder = document.getElementById('cliente-details-placeholder');
+    const clienteDetailsContent = document.getElementById('cliente-details-content');
+    const clienteNome = document.getElementById('cliente-nome');
+    const clienteWhatsapp = document.getElementById('cliente-whatsapp');
+    const clienteWhatsappBtn = document.getElementById('cliente-whatsapp-btn');
+    const historicoLoading = document.getElementById('historico-loading');
+    const historicoTableBody = document.getElementById('historico-table-body');
+    const historicoEmpty = document.getElementById('historico-empty');
+
+    // Cliente selecionado atualmente
+    let selectedClienteId = null;
+
+    /**
+     * Inicializa o módulo de Clientes
+     */
+    function initClientes() {
+        // Carrega os clientes ao inicializar
+        loadClientes();
+        
+        // Adiciona listener para o botão de WhatsApp
+        clienteWhatsappBtn.addEventListener('click', function() {
+            const numero = clienteWhatsapp.textContent;
+            abrirWhatsApp(numero);
+        });
+    }
+
+    /**
+     * Carrega os clientes do Airtable e atualiza a interface
+     */
+    function loadClientes() {
+        // Mostra o indicador de carregamento
+        clientesLoading.classList.remove('hidden');
+        clientesList.innerHTML = '';
+        clientesEmpty.classList.add('hidden');
+        clientesError.textContent = '';
+        
+        // Reseta a visualização de detalhes
+        resetClienteDetails();
+        
+        // Busca os clientes usando o serviço Airtable
+        window.airtableService.fetchClientes(function(err, clientes) {
+            // Esconde o indicador de carregamento
+            clientesLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                clientesError.textContent = 'Erro ao carregar os clientes. Tente novamente mais tarde.';
+                return;
+            }
+            
+            if (clientes.length === 0) {
+                // Exibe mensagem de lista vazia
+                clientesEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Preenche a lista de clientes
+            renderClientesList(clientes);
+        });
+    }
+
+    /**
+     * Renderiza a lista de clientes
+     * @param {Array} clientes - Lista de clientes a serem exibidos
+     */
+    function renderClientesList(clientes) {
+        // Limpa a lista atual
+        clientesList.innerHTML = '';
+        
+        // Adiciona cada cliente à lista
+        clientes.forEach(cliente => {
+            const li = document.createElement('li');
+            li.textContent = cliente['Nome Completo'] || 'Cliente sem nome';
+            li.setAttribute('data-id', cliente.id);
+            
+            // Adiciona classe 'active' se for o cliente selecionado
+            if (cliente.id === selectedClienteId) {
+                li.classList.add('active');
+            }
+            
+            // Adiciona listener para selecionar o cliente
+            li.addEventListener('click', function() {
+                // Remove a classe 'active' de todos os itens
+                document.querySelectorAll('#clientes-list li').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Adiciona a classe 'active' ao item clicado
+                this.classList.add('active');
+                
+                // Carrega os detalhes do cliente
+                const clienteId = this.getAttribute('data-id');
+                loadClienteDetails(clienteId, cliente);
+            });
+            
+            // Adiciona o item à lista
+            clientesList.appendChild(li);
+        });
+    }
+
+    /**
+     * Carrega os detalhes de um cliente específico
+     * @param {string} clienteId - ID do cliente
+     * @param {Object} clienteData - Dados do cliente
+     */
+    function loadClienteDetails(clienteId, clienteData) {
+        // Armazena o ID do cliente selecionado
+        selectedClienteId = clienteId;
+        
+        // Esconde o placeholder e mostra o conteúdo
+        clienteDetailsPlaceholder.classList.add('hidden');
+        clienteDetailsContent.classList.remove('hidden');
+        
+        // Preenche os dados básicos do cliente
+        clienteNome.textContent = clienteData['Nome Completo'] || 'N/A';
+        clienteWhatsapp.textContent = clienteData['Número WhatsApp'] || 'N/A';
+        
+        // Carrega o histórico de compras
+        loadHistoricoCompras(clienteId);
+    }
+
+    /**
+     * Carrega o histórico de compras de um cliente
+     * @param {string} clienteId - ID do cliente
+     */
+    function loadHistoricoCompras(clienteId) {
+        // Mostra o indicador de carregamento
+        historicoLoading.classList.remove('hidden');
+        historicoTableBody.innerHTML = '';
+        historicoEmpty.classList.add('hidden');
+        
+        // Busca o histórico usando o serviço Airtable
+        window.airtableService.fetchHistoricoCompras(clienteId, function(err, compras) {
+            // Esconde o indicador de carregamento
+            historicoLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                historicoTableBody.innerHTML = '<tr><td colspan="4">Erro ao carregar histórico.</td></tr>';
+                return;
+            }
+            
+            if (compras.length === 0) {
+                // Exibe mensagem de histórico vazio
+                historicoEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Preenche a tabela de histórico
+            renderHistoricoTable(compras);
+        });
+    }
+
+    /**
+     * Renderiza a tabela de histórico de compras
+     * @param {Array} compras - Lista de compras a serem exibidas
+     */
+    function renderHistoricoTable(compras) {
+        // Limpa a tabela atual
+        historicoTableBody.innerHTML = '';
+        
+        // Adiciona cada compra à tabela
+        compras.forEach(compra => {
+            const row = document.createElement('tr');
+            
+            // Formata a data de compra
+            const dataCompra = compra['Data Compra'] 
+                ? new Date(compra['Data Compra']).toLocaleDateString('pt-BR') 
+                : '-';
+            
+            // Cria as células da linha
+            row.innerHTML = `
+                <td>${dataCompra}</td>
+                <td>${compra['Tipo Mapa'] || '-'}</td>
+                <td>R$ ${compra['Preço Registrado']?.toFixed(2) || 'N/A'}</td>
+                <td>${compra['Status'] || '-'}</td>
+            `;
+            
+            // Adiciona a linha à tabela
+            historicoTableBody.appendChild(row);
+        });
+    }
+
+    /**
+     * Reseta a visualização de detalhes do cliente
+     */
+    function resetClienteDetails() {
+        clienteDetailsPlaceholder.classList.remove('hidden');
+        clienteDetailsContent.classList.add('hidden');
+        selectedClienteId = null;
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.clientesModule = {
+        init: initClientes,
+        loadClientes: loadClientes
+    };
+
+    /**
+     * Arquivo principal da aplicação
+     * Gerencia a inicialização dos módulos e a navegação entre seções
+     */
+
+    // Referências aos elementos de navegação
+    const navFilaMapas = document.getElementById('nav-fila-mapas');
+    const navRegistrarVenda = document.getElementById('nav-registrar-venda');
+    const navClientes = document.getElementById('nav-clientes');
+
+    // Referências às seções de conteúdo
+    const filaMapasSection = document.getElementById('fila-mapas-section');
+    const registrarVendaSection = document.getElementById('registrar-venda-section');
+    const clientesSection = document.getElementById('clientes-section');
+
+    /**
+     * Inicializa a aplicação quando o DOM estiver carregado
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa o módulo de autenticação
+        window.initAuth();
+        
+        // Configura a navegação
+        setupNavigation();
+    });
+
+    /**
+     * Configura os eventos de navegação entre seções
+     */
+    function setupNavigation() {
+        // Navegação para Fila de Mapas
+        navFilaMapas.addEventListener('click', function() {
+            showSection(filaMapasSection, navFilaMapas);
+        });
+        
+        // Navegação para Registrar Venda
+        navRegistrarVenda.addEventListener('click', function() {
+            showSection(registrarVendaSection, navRegistrarVenda);
+        });
+        
+        // Navegação para Clientes
+        navClientes.addEventListener('click', function() {
+            showSection(clientesSection, navClientes);
+        });
+    }
+
+    /**
+     * Mostra uma seção específica e esconde as outras
+     * @param {HTMLElement} section - Seção a ser mostrada
+     * @param {HTMLElement} navButton - Botão de navegação a ser marcado como ativo
+     */
+    function showSection(section, navButton) {
+        // Esconde todas as seções
+        filaMapasSection.classList.add('hidden');
+        registrarVendaSection.classList.add('hidden');
+        clientesSection.classList.add('hidden');
+        
+        // Remove a classe 'active' de todos os botões de navegação
+        navFilaMapas.classList.remove('active');
+        navRegistrarVenda.classList.remove('active');
+        navClientes.classList.remove('active');
+        
+        // Mostra a seção selecionada
+        section.classList.remove('hidden');
+        
+        // Marca o botão de navegação como ativo
+        navButton.classList.add('active');
+    }
+
+    /**
+     * Carrega os dados iniciais após o login
+     * Chamada pelo módulo de autenticação quando o usuário está autenticado
+     */
+    function loadInitialData() {
+        // Inicializa os módulos
+        window.filaMapasModule.init();
+        window.registrarVendaModule.init();
+        window.clientesModule.init();
+        
+        // Por padrão, mostra a seção de Fila de Mapas
+        showSection(filaMapasSection, navFilaMapas);
+    }
+
+    // Exporta a função para uso no módulo de autenticação
+    window.loadInitialData = loadInitialData;
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astrologia Indiana</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Airtable SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.1/build/airtable.browser.js"></script>
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+    /* 
+     * Estilos principais da aplicação Astrologia Indiana
+     * Design responsivo mobile-first com cores e estilos inspirados na cultura indiana
+     */
+
+    /* Variáveis CSS para cores e estilos consistentes */
+    :root {
+      --color-primary: #8e6c3e; /* Dourado suave */
+      --color-secondary: #5a7d7c; /* Verde acinzentado */
+      --color-accent: #c17f46; /* Terroso alaranjado */
+      --color-background: #f8f5f0; /* Bege claro */
+      --color-text: #3a3a3a; /* Quase preto */
+      --color-light: #f9f6f2; /* Bege mais claro */
+      --color-error: #d9534f; /* Vermelho */
+      --color-success: #5cb85c; /* Verde */
+      --color-warning: #f0ad4e; /* Amarelo */
+      --border-radius: 4px;
+      --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1 );
+      --transition: all 0.3s ease;
+    }
+
+    /* Reset e estilos base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hind', sans-serif;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    h1, h2, h3, h4 {
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    a {
+      color: var(--color-secondary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Utilitários */
+    .hidden {
+      display: none !important;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 1rem;
+      color: var(--color-secondary);
+    }
+
+    .error-message {
+      color: var(--color-error);
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .success-message {
+      color: var(--color-success);
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 1rem;
+      color: var(--color-text);
+      font-style: italic;
+    }
+
+    /* Layout principal */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tela de Login */
+    #login-screen {
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, var(--color-background) 0%, #e8dfd0 100%);
+      padding: 1rem;
+    }
+
+    .login-container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-container h1 {
+      margin-bottom: 2rem;
+      color: var(--color-primary);
+    }
+
+    /* Tela principal do app */
+    #app-screen {
+      background-color: var(--color-background);
+    }
+
+    header {
+      background-color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--box-shadow);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    nav {
+      background-color: var(--color-light);
+      padding: 0.5rem;
+      display: flex;
+      overflow-x: auto;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 1rem;
+      white-space: nowrap;
+      color: var(--color-text);
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .nav-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+    }
+
+    .content-section {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: var(--color-light);
+      color: var(--color-text);
+      font-size: 0.9rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    /* Formulários */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--color-secondary);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input {
+      width: auto;
+    }
+
+    .checkbox-group label {
+      margin: 0;
+    }
+
+    /* Botões */
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-secondary);
+    }
+
+    .btn-danger {
+      background-color: var(--color-error);
+    }
+
+    .btn-action {
+      background-color: var(--color-accent);
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* Tabelas */
+    .table-responsive {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      font-weight: 500;
+      background-color: var(--color-light);
+    }
+
+    tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    /* Seção de Clientes */
+    .clientes-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .clientes-list {
+      background-color: var(--color-light);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .clientes-list ul {
+      list-style: none;
+    }
+
+    .clientes-list li {
+      padding: 0.75rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .clientes-list li:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .clientes-list li.active {
+      background-color: rgba(142, 108, 62, 0.1);
+      font-weight: 500;
+    }
+
+    .cliente-details {
+      background-color: var(--color-light);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+    }
+
+    /* Responsividade */
+    @media (min-width: 768px) {
+      .clientes-container {
+        flex-direction: row;
+      }
+      
+      .clientes-list {
+        flex: 1;
+      }
+      
+      .cliente-details {
+        flex: 2;
+      }
+      
+      .btn-action {
+        min-width: 120px;
+      }
+    }
+
+    @media (min-width: 992px) {
+      main {
+        padding: 2rem;
+      }
+      
+      .content-section {
+        padding: 2rem;
+      }
+    }
+    </style>
+</head>
+<body>
+    <!-- Container principal -->
+    <div id="app">
+        <!-- Tela de Login (visível inicialmente) -->
+        <div id="login-screen" class="screen">
+            <div class="login-container">
+                <h1>Astrologia Indiana</h1>
+                <form id="login-form">
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder="E-mail" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Senha" required>
+                    </div>
+                    <div id="login-error" class="error-message"></div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tela principal do app (oculta inicialmente) -->
+        <div id="app-screen" class="screen hidden">
+            <header>
+                <h1>Astrologia Indiana</h1>
+                <div class="user-info">
+                    <span id="user-email"></span>
+                    <button id="logout-btn" class="btn btn-danger">Sair</button>
+                </div>
+            </header>
+
+            <nav>
+                <button id="nav-fila-mapas" class="nav-btn active">Fila de Mapas</button>
+                <button id="nav-registrar-venda" class="nav-btn">Registrar Venda</button>
+                <button id="nav-clientes" class="nav-btn">Clientes</button>
+            </nav>
+
+            <!-- Conteúdo das seções (apenas uma visível por vez) -->
+            <main>
+                <!-- Fila de Mapas -->
+                <section id="fila-mapas-section" class="content-section">
+                    <h2>Fila de Mapas Astrológicos</h2>
+                    <div id="mapas-loading" class="loading">A carregar fila de mapas...</div>
+                    <div id="mapas-error" class="error-message"></div>
+                    <div id="mapas-table-container" class="table-responsive">
+                        <table id="mapas-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Data Compra</th>
+                                    <th>Tipo Mapa</th>
+                                    <th>Status</th>
+                                    <th>Responsável</th>
+                                    <th>WhatsApp</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mapas-table-body">
+                                <!-- Preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="mapas-empty" class="empty-message hidden">Nenhum mapa pendente encontrado.</div>
+                </section>
+
+                <!-- Registrar Venda -->
+                <section id="registrar-venda-section" class="content-section hidden">
+                    <h2>Registrar Nova Venda</h2>
+                    <div id="tipos-mapa-loading" class="loading">A carregar tipos de mapa...</div>
+                    <form id="venda-form">
+                        <div class="form-group">
+                            <label for="nome-cliente">Nome Completo Cliente:*</label>
+                            <input type="text" id="nome-cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="whatsapp-cliente">Número WhatsApp Cliente:*</label>
+                            <input type="text" id="whatsapp-cliente" placeholder="Ex: 11987654321" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo-mapa">Tipo de Mapa:*</label>
+                            <select id="tipo-mapa" required>
+                                <!-- Preenchido via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="data-nascimento">Data Nascimento Cliente:</label>
+                            <input type="date" id="data-nascimento">
+                        </div>
+                        <div class="form-group">
+                            <label for="hora-nascimento">Hora Nascimento Cliente:</label>
+                            <input type="time" id="hora-nascimento">
+                        </div>
+                        <div class="form-group">
+                            <label for="local-nascimento">Local Nascimento Cliente:</label>
+                            <input type="text" id="local-nascimento" placeholder="Cidade, Estado, País">
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="requer-video">
+                            <label for="requer-video">Requer Videochamada?</label>
+                        </div>
+                        <div id="venda-error" class="error-message"></div>
+                        <div id="venda-success" class="success-message"></div>
+                        <button type="submit" id="registrar-venda-btn" class="btn btn-primary">Registrar Venda</button>
+                    </form>
+                </section>
+
+                <!-- Clientes -->
+                <section id="clientes-section" class="content-section hidden">
+                    <h2>Gestão de Clientes</h2>
+                    <div id="clientes-loading" class="loading">A carregar clientes...</div>
+                    <div id="clientes-error" class="error-message"></div>
+                    <div class="clientes-container">
+                        <div class="clientes-list">
+                            <h3>Lista de Clientes</h3>
+                            <ul id="clientes-list">
+                                <!-- Preenchido via JavaScript -->
+                            </ul>
+                            <div id="clientes-empty" class="empty-message hidden">Nenhum cliente encontrado.</div>
+                        </div>
+                        <div class="cliente-details">
+                            <h3>Detalhes do Cliente</h3>
+                            <div id="cliente-details-placeholder">Selecione um cliente da lista para ver os detalhes.</div>
+                            <div id="cliente-details-content" class="hidden">
+                                <p><strong>Nome:</strong> <span id="cliente-nome"></span></p>
+                                <p>
+                                    <strong>WhatsApp:</strong> <span id="cliente-whatsapp"></span>
+                                    <button id="cliente-whatsapp-btn" class="btn btn-action">Abrir WhatsApp</button>
+                                </p>
+                                
+                                <h4>Histórico de Compras</h4>
+                                <div id="historico-loading" class="loading hidden">A carregar histórico...</div>
+                                <div id="historico-table-container" class="table-responsive">
+                                    <table id="historico-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data Compra</th>
+                                                <th>Tipo Mapa</th>
+                                                <th>Preço Pago</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historico-table-body">
+                                            <!-- Preenchido via JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="historico-empty" class="empty-message hidden">Nenhuma compra registrada para este cliente.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                Astrologia Indiana App - v1.0
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    /**
+     * Configurações de Firebase e Airtable
+     * Contém as credenciais e configurações necessárias para as integrações
+     */
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAngAB_zoXr5lsi1N8WocVJeHFq6QjdUUs",
+      authDomain: "astrologia-indiana-app.firebaseapp.com",
+      projectId: "astrologia-indiana-app",
+      storageBucket: "astrologia-indiana-app.firebasestorage.app",
+      messagingSenderId: "1055729827966",
+      appId: "1:1055729827966:web:51954b0cabee762653d82f",
+      measurementId: "G-E1BSNLPJJF"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Configuração do Airtable
+    const AIRTABLE_API_KEY = 'patkcHF16ytjQFYtf.2d2b97aeab44b5961a1c7e4c68e6f5e2bdef0b81f2cd0303dc2580f9d96df10d';
+    const AIRTABLE_BASE_ID = 'appc74NoitSC8w1XQ';
+
+    // Inicializa o Airtable
+    Airtable.configure({ apiKey: AIRTABLE_API_KEY });
+    const airtableBase = Airtable.base(AIRTABLE_BASE_ID);
+
+    // Exporta as configurações para uso em outros módulos
+    window.firebaseAuth = firebase.auth();
+    window.airtableBase = airtableBase;
+
+    /**
+     * Módulo de Autenticação
+     * Gerencia login, logout e estado do utilizador com Firebase Auth
+     * 
+     * Nota: Para testes locais via file://, a autenticação Firebase pode não funcionar corretamente
+     * devido a restrições de segurança. Para testes completos, recomenda-se usar um servidor local
+     * como http-server, live-server ou similar.
+     */
+
+    // Referências aos elementos do DOM relacionados à autenticação
+    const loginScreen = document.getElementById('login-screen' );
+    const appScreen = document.getElementById('app-screen');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const userEmail = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // Credenciais para simulação de login em ambiente local (file://)
+    const MOCK_USERS = [
+        { email: 'conrado@astrologiaindiana.com', password: 'senha123' },
+        { email: 'kavi@astrologiaindiana.com', password: 'senha123' }
+    ];
+
+    // Flag para determinar se deve usar autenticação simulada
+    const USE_MOCK_AUTH = true; // Altere para false em ambiente de produção
+
+    /**
+     * Inicializa o módulo de autenticação
+     * Configura listeners e verifica estado de autenticação
+     */
+    function initAuth() {
+        // Listener para o formulário de login
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // Listener para o botão de logout
+        logoutBtn.addEventListener('click', handleLogout);
+        
+        if (!USE_MOCK_AUTH) {
+            // Monitorar mudanças no estado de autenticação (Firebase)
+            firebaseAuth.onAuthStateChanged(handleAuthStateChange);
+        } else {
+            // Verificar se há um usuário simulado na sessão
+            const mockUser = sessionStorage.getItem('mockUser');
+            if (mockUser) {
+                handleAuthStateChange({ email: mockUser });
+            }
+        }
+    }
+
+    /**
+     * Trata o evento de submissão do formulário de login
+     * @param {Event} e - Evento de submissão do formulário
+     */
+    async function handleLogin(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Limpa mensagens de erro anteriores
+        loginError.textContent = '';
+        
+        if (USE_MOCK_AUTH) {
+            // Autenticação simulada para ambiente local
+            const user = MOCK_USERS.find(u => u.email === email && u.password === password);
+            if (user) {
+                // Simula login bem-sucedido
+                sessionStorage.setItem('mockUser', email);
+                handleAuthStateChange({ email: email });
+            } else {
+                loginError.textContent = 'Falha no login. Verifique o e-mail e a senha.';
+            }
+        } else {
+            try {
+                // Tenta fazer login com Firebase Auth
+                await firebaseAuth.signInWithEmailAndPassword(email, password);
+                // O redirecionamento é tratado pelo listener onAuthStateChanged
+            } catch (error) {
+                console.error('Erro de login:', error);
+                loginError.textContent = 'Falha no login. Verifique o e-mail e a senha.';
+            }
+        }
+    }
+
+    /**
+     * Trata o evento de clique no botão de logout
+     */
+    async function handleLogout() {
+        if (USE_MOCK_AUTH) {
+            // Logout simulado
+            sessionStorage.removeItem('mockUser');
+            handleAuthStateChange(null);
+        } else {
+            try {
+                await firebaseAuth.signOut();
+                // O redirecionamento é tratado pelo listener onAuthStateChanged
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                alert('Erro ao fazer logout. Tente novamente.');
+            }
+        }
+    }
+
+    /**
+     * Trata mudanças no estado de autenticação
+     * @param {Object} user - Objeto do utilizador autenticado ou null
+     */
+    function handleAuthStateChange(user) {
+        if (user) {
+            // Utilizador está autenticado
+            console.log('Utilizador autenticado:', user.email);
+            
+            // Atualiza a interface para mostrar o e-mail do utilizador
+            userEmail.textContent = user.email;
+            
+            // Mostra a tela principal e esconde a tela de login
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            
+            // Carrega os dados iniciais da aplicação
+            window.loadInitialData && window.loadInitialData();
+        } else {
+            // Utilizador não está autenticado
+            console.log('Utilizador não autenticado');
+            
+            // Mostra a tela de login e esconde a tela principal
+            loginScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+            
+            // Limpa os campos do formulário de login
+            loginForm.reset();
+        }
+    }
+
+    // Exporta a função de inicialização para uso no app.js
+    window.initAuth = initAuth;
+
+    /**
+     * Módulo de integração com Airtable
+     * Gerencia todas as operações de leitura e escrita na base Airtable
+     */
+
+    /**
+     * Busca todos os mapas da tabela Mapas
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchMapas(callback) {
+        const mapas = [];
+        
+        airtableBase('Mapas').select({
+            sort: [{ field: 'Data Compra', direction: 'desc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    mapas.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar mapas:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, mapas);
+            }
+        );
+    }
+
+    /**
+     * Atualiza o status de um mapa para "Enviado"
+     * @param {string} recordId - ID do registro a ser atualizado
+     * @param {Function} callback - Função de callback após a atualização
+     */
+    function marcarMapaComoEnviado(recordId, callback) {
+        airtableBase('Mapas').update([
+            {
+                "id": recordId,
+                "fields": {
+                    "Status": "Enviado"
+                }
+            }
+        ], function(err, records) {
+            if (err) {
+                console.error('Erro ao atualizar status:', err);
+                callback(err, null);
+                return;
+            }
+            callback(null, records[0]);
+        });
+    }
+
+    /**
+     * Busca todos os tipos de mapa disponíveis
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchTiposMapa(callback) {
+        const tipos = [];
+        
+        airtableBase('TiposDeMapa').select({
+            sort: [{ field: 'Nome Mapa', direction: 'asc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    tipos.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar tipos de mapa:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, tipos);
+            }
+        );
+    }
+
+    /**
+     * Registra uma nova venda de mapa
+     * @param {Object} vendaData - Dados da venda a ser registrada
+     * @param {Function} callback - Função de callback após o registro
+     */
+    function registrarVenda(vendaData, callback) {
+        airtableBase('Mapas').create([
+            {
+                fields: vendaData
+            }
+        ], function(err, records) {
+            if (err) {
+                console.error('Erro ao registrar venda:', err);
+                callback(err, null);
+                return;
+            }
+            callback(null, records[0]);
+        });
+    }
+
+    /**
+     * Busca todos os clientes
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchClientes(callback) {
+        const clientes = [];
+        
+        airtableBase('Clientes').select({
+            sort: [{ field: 'Nome Completo', direction: 'asc' }]
+        }).eachPage(
+            function page(records, fetchNextPage) {
+                records.forEach(function(record) {
+                    clientes.push({
+                        id: record.id,
+                        ...record.fields
+                    });
+                });
+                fetchNextPage();
+            },
+            function done(err) {
+                if (err) {
+                    console.error('Erro ao buscar clientes:', err);
+                    callback(err, null);
+                    return;
+                }
+                callback(null, clientes);
+            }
+        );
+    }
+
+    /**
+     * Busca o histórico de compras de um cliente específico
+     * @param {string} clienteId - ID do cliente
+     * @param {Function} callback - Função de callback para processar os resultados
+     */
+    function fetchHistoricoCompras(clienteId, callback) {
+        // Primeiro, busca o cliente para obter os IDs dos mapas relacionados
+        airtableBase('Clientes').find(clienteId, function(err, record) {
+            if (err) {
+                console.error('Erro ao buscar detalhes do cliente:', err);
+                callback(err, null);
+                return;
+            }
+            
+            const mapasIds = record.get('Histórico Compras');
+            if (!mapasIds || mapasIds.length === 0) {
+                // Cliente não tem histórico de compras
+                callback(null, []);
+                return;
+            }
+            
+            // Cria uma fórmula para filtrar apenas os mapas relacionados
+            const filterFormula = "OR(" + mapasIds.map(id => `RECORD_ID()='${id}'`).join(',') + ")";
+            
+            const compras = [];
+            airtableBase('Mapas').select({
+                filterByFormula: filterFormula,
+                sort: [{ field: 'Data Compra', direction: 'desc' }]
+            }).eachPage(
+                function page(records, fetchNextPage) {
+                    records.forEach(function(record) {
+                        compras.push({
+                            id: record.id,
+                            ...record.fields
+                        });
+                    });
+                    fetchNextPage();
+                },
+                function done(err) {
+                    if (err) {
+                        console.error('Erro ao buscar histórico de compras:', err);
+                        callback(err, null);
+                        return;
+                    }
+                    callback(null, compras);
+                }
+            );
+        });
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.airtableService = {
+        fetchMapas,
+        marcarMapaComoEnviado,
+        fetchTiposMapa,
+        registrarVenda,
+        fetchClientes,
+        fetchHistoricoCompras
+    };
+
+    /**
+     * Módulo de Fila de Mapas
+     * Gerencia a exibição e interação com a lista de mapas astrológicos
+     */
+
+    // Referências aos elementos do DOM
+    const mapasLoading = document.getElementById('mapas-loading');
+    const mapasError = document.getElementById('mapas-error');
+    const mapasTableContainer = document.getElementById('mapas-table-container');
+    const mapasTableBody = document.getElementById('mapas-table-body');
+    const mapasEmpty = document.getElementById('mapas-empty');
+
+    /**
+     * Inicializa o módulo de Fila de Mapas
+     */
+    function initFilaMapas() {
+        // Carrega os mapas ao inicializar
+        loadMapas();
+    }
+
+    /**
+     * Carrega os mapas do Airtable e atualiza a interface
+     */
+    function loadMapas() {
+        // Mostra o indicador de carregamento
+        mapasLoading.classList.remove('hidden');
+        mapasTableContainer.classList.add('hidden');
+        mapasEmpty.classList.add('hidden');
+        mapasError.textContent = '';
+        
+        // Busca os mapas usando o serviço Airtable
+        window.airtableService.fetchMapas(function(err, mapas) {
+            // Esconde o indicador de carregamento
+            mapasLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                mapasError.textContent = 'Erro ao carregar os mapas. Tente novamente mais tarde.';
+                return;
+            }
+            
+            if (mapas.length === 0) {
+                // Exibe mensagem de lista vazia
+                mapasEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Exibe a tabela e preenche com os dados
+            mapasTableContainer.classList.remove('hidden');
+            renderMapasTable(mapas);
+        });
+    }
+
+    /**
+     * Renderiza a tabela de mapas com os dados recebidos
+     * @param {Array} mapas - Lista de mapas a serem exibidos
+     */
+    function renderMapasTable(mapas) {
+        // Limpa o conteúdo atual da tabela
+        mapasTableBody.innerHTML = '';
+        
+        // Adiciona cada mapa à tabela
+        mapas.forEach(mapa => {
+            const row = document.createElement('tr');
+            
+            // Formata a data de compra
+            const dataCompra = mapa['Data Compra'] 
+                ? new Date(mapa['Data Compra']).toLocaleDateString('pt-BR') 
+                : '-';
+            
+            // Cria as células da linha
+            row.innerHTML = `
+                <td>${mapa['Nome Completo Cliente'] || '-'}</td>
+                <td>${dataCompra}</td>
+                <td>${mapa['Tipo Mapa'] || '-'}</td>
+                <td>${mapa['Status'] || '-'}</td>
+                <td>${mapa['Responsável'] || '-'}</td>
+                <td>${mapa['Número WhatsApp Cliente'] || '-'}</td>
+                <td>
+                    <button class="btn btn-action whatsapp-btn" data-numero="${mapa['Número WhatsApp Cliente'] || ''}">
+                        WhatsApp
+                    </button>
+                    ${mapa['Status'] === 'Pendente' ? `
+                        <button class="btn btn-action marcar-enviado-btn" data-id="${mapa.id}">
+                            Marcar Enviado
+                        </button>
+                    ` : ''}
+                </td>
+            `;
+            
+            // Adiciona a linha à tabela
+            mapasTableBody.appendChild(row);
+        });
+        
+        // Adiciona event listeners aos botões
+        addMapasButtonListeners();
+    }
+
+    /**
+     * Adiciona event listeners aos botões da tabela de mapas
+     */
+    function addMapasButtonListeners() {
+        // Botões de WhatsApp
+        document.querySelectorAll('.whatsapp-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const numero = this.getAttribute('data-numero');
+                abrirWhatsApp(numero);
+            });
+        });
+        
+        // Botões de Marcar como Enviado
+        document.querySelectorAll('.marcar-enviado-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                marcarComoEnviado(id);
+            });
+        });
+    }
+
+    /**
+     * Abre o WhatsApp com o número especificado
+     * @param {string} numero - Número de telefone para abrir no WhatsApp
+     */
+    function abrirWhatsApp(numero) {
+        if (!numero) {
+            alert('Número de WhatsApp não encontrado para este cliente.');
+            return;
+        }
+        
+        // Limpa o número (remove caracteres não numéricos)
+        const numeroLimpo = numero.replace(/\D/g, '');
+        
+        // Cria a URL do WhatsApp (assumindo números brasileiros)
+        const whatsappUrl = `https://wa.me/55${numeroLimpo}`;
+        
+        // Abre em uma nova aba
+        window.open(whatsappUrl, '_blank' );
+    }
+
+    /**
+     * Marca um mapa como enviado
+     * @param {string} id - ID do registro a ser atualizado
+     */
+    function marcarComoEnviado(id) {
+        if (!confirm('Tem certeza que deseja marcar este mapa como enviado?')) {
+            return;
+        }
+        
+        // Atualiza o status no Airtable
+        window.airtableService.marcarMapaComoEnviado(id, function(err, record) {
+            if (err) {
+                alert('Erro ao atualizar o status do mapa.');
+                return;
+            }
+            
+            alert('Mapa marcado como enviado com sucesso!');
+            
+            // Recarrega a lista de mapas
+            loadMapas();
+        });
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.filaMapasModule = {
+        init: initFilaMapas,
+        loadMapas: loadMapas
+    };
+
+    /**
+     * Módulo de Registrar Venda
+     * Gerencia o formulário e processo de registro de novas vendas
+     */
+
+    // Referências aos elementos do DOM
+    const tiposMapaLoading = document.getElementById('tipos-mapa-loading');
+    const vendaForm = document.getElementById('venda-form');
+    const tipoMapaSelect = document.getElementById('tipo-mapa');
+    const nomeClienteInput = document.getElementById('nome-cliente');
+    const whatsappClienteInput = document.getElementById('whatsapp-cliente');
+    const dataNascimentoInput = document.getElementById('data-nascimento');
+    const horaNascimentoInput = document.getElementById('hora-nascimento');
+    const localNascimentoInput = document.getElementById('local-nascimento');
+    const requerVideoCheckbox = document.getElementById('requer-video');
+    const vendaError = document.getElementById('venda-error');
+    const vendaSuccess = document.getElementById('venda-success');
+    const registrarVendaBtn = document.getElementById('registrar-venda-btn');
+
+    // Armazena os tipos de mapa carregados
+    let tiposMapa = [];
+
+    /**
+     * Inicializa o módulo de Registrar Venda
+     */
+    function initRegistrarVenda() {
+        // Carrega os tipos de mapa ao inicializar
+        loadTiposMapa();
+        
+        // Adiciona listener para o formulário
+        vendaForm.addEventListener('submit', handleSubmitVenda);
+    }
+
+    /**
+     * Carrega os tipos de mapa do Airtable e preenche o select
+     */
+    function loadTiposMapa() {
+        // Mostra o indicador de carregamento
+        tiposMapaLoading.classList.remove('hidden');
+        tipoMapaSelect.disabled = true;
+        
+        // Busca os tipos de mapa usando o serviço Airtable
+        window.airtableService.fetchTiposMapa(function(err, tipos) {
+            // Esconde o indicador de carregamento
+            tiposMapaLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                vendaError.textContent = 'Erro ao carregar os tipos de mapa. Tente novamente mais tarde.';
+                return;
+            }
+            
+            // Armazena os tipos para uso posterior
+            tiposMapa = tipos;
+            
+            // Habilita o select
+            tipoMapaSelect.disabled = false;
+            
+            // Preenche o select com os tipos de mapa
+            populateTipoMapaSelect(tipos);
+        });
+    }
+
+    /**
+     * Preenche o select de tipos de mapa
+     * @param {Array} tipos - Lista de tipos de mapa
+     */
+    function populateTipoMapaSelect(tipos) {
+        // Limpa as opções atuais
+        tipoMapaSelect.innerHTML = '';
+        
+        // Adiciona cada tipo como uma opção
+        tipos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.id;
+            option.textContent = `${tipo['Nome Mapa']} (R$ ${tipo['Preço (R$)']})`;
+            tipoMapaSelect.appendChild(option);
+        });
+    }
+
+    /**
+     * Trata o evento de submissão do formulário de venda
+     * @param {Event} e - Evento de submissão do formulário
+     */
+    function handleSubmitVenda(e) {
+        e.preventDefault();
+        
+        // Limpa mensagens anteriores
+        vendaError.textContent = '';
+        vendaSuccess.textContent = '';
+        
+        // Valida campos obrigatórios
+        if (!nomeClienteInput.value || !whatsappClienteInput.value || !tipoMapaSelect.value) {
+            vendaError.textContent = 'Preencha todos os campos obrigatórios (Nome, WhatsApp, Tipo Mapa).';
+            return;
+        }
+        
+        // Desabilita o botão para evitar submissões duplicadas
+        registrarVendaBtn.disabled = true;
+        registrarVendaBtn.textContent = 'A registrar...';
+        
+        // Encontra o tipo de mapa selecionado
+        const tipoMapaSelecionado = tiposMapa.find(tipo => tipo.id === tipoMapaSelect.value);
+        if (!tipoMapaSelecionado) {
+            vendaError.textContent = 'Tipo de mapa selecionado inválido.';
+            resetSubmitButton();
+            return;
+        }
+        
+        // Determina o responsável com base no e-mail do usuário logado
+        const userEmail = document.getElementById('user-email').textContent;
+        const responsavel = userEmail === 'kavi@astrologiaindiana.com' ? 'Kavi' : 'Conrado';
+        
+        // Prepara os dados da venda
+        const vendaData = {
+            'Nome Completo Cliente': nomeClienteInput.value,
+            'Número WhatsApp Cliente': whatsappClienteInput.value,
+            'Data Compra': new Date().toISOString().split('T')[0], // Data atual
+            'Tipo Mapa': [tipoMapaSelect.value], // Link para TiposDeMapa
+            'Preço Registrado': tipoMapaSelecionado['Preço (R$)'],
+            'Responsável': responsavel,
+            'Status': 'Pendente'
+        };
+        
+        // Adiciona campos opcionais se preenchidos
+        if (dataNascimentoInput.value) {
+            vendaData['Data Nascimento Cliente'] = dataNascimentoInput.value;
+        }
+        
+        if (horaNascimentoInput.value) {
+            vendaData['Hora Nascimento Cliente'] = horaNascimentoInput.value;
+        }
+        
+        if (localNascimentoInput.value) {
+            vendaData['Local Nascimento Cliente'] = localNascimentoInput.value;
+        }
+        
+        vendaData['Requer Videochamada'] = requerVideoCheckbox.checked;
+        
+        // Registra a venda no Airtable
+        window.airtableService.registrarVenda(vendaData, function(err, record) {
+            // Restaura o botão
+            resetSubmitButton();
+            
+            if (err) {
+                vendaError.textContent = 'Erro ao registrar a venda. Tente novamente.';
+                return;
+            }
+            
+            // Exibe mensagem de sucesso
+            vendaSuccess.textContent = `Venda para ${record.fields['Nome Completo Cliente']} registrada com sucesso!`;
+            
+            // Limpa o formulário
+            vendaForm.reset();
+            
+            // Recarrega os tipos de mapa para garantir que o select seja preenchido novamente
+            loadTiposMapa();
+            
+            // Atualiza a lista de mapas se estiver visível
+            if (window.filaMapasModule && !document.getElementById('fila-mapas-section').classList.contains('hidden')) {
+                window.filaMapasModule.loadMapas();
+            }
+        });
+    }
+
+    /**
+     * Restaura o botão de submissão para o estado normal
+     */
+    function resetSubmitButton() {
+        registrarVendaBtn.disabled = false;
+        registrarVendaBtn.textContent = 'Registrar Venda';
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.registrarVendaModule = {
+        init: initRegistrarVenda
+    };
+
+    /**
+     * Módulo de Clientes
+     * Gerencia a exibição e interação com a lista de clientes e seus históricos
+     */
+
+    // Referências aos elementos do DOM
+    const clientesLoading = document.getElementById('clientes-loading');
+    const clientesError = document.getElementById('clientes-error');
+    const clientesList = document.getElementById('clientes-list');
+    const clientesEmpty = document.getElementById('clientes-empty');
+    const clienteDetailsPlaceholder = document.getElementById('cliente-details-placeholder');
+    const clienteDetailsContent = document.getElementById('cliente-details-content');
+    const clienteNome = document.getElementById('cliente-nome');
+    const clienteWhatsapp = document.getElementById('cliente-whatsapp');
+    const clienteWhatsappBtn = document.getElementById('cliente-whatsapp-btn');
+    const historicoLoading = document.getElementById('historico-loading');
+    const historicoTableBody = document.getElementById('historico-table-body');
+    const historicoEmpty = document.getElementById('historico-empty');
+
+    // Cliente selecionado atualmente
+    let selectedClienteId = null;
+
+    /**
+     * Inicializa o módulo de Clientes
+     */
+    function initClientes() {
+        // Carrega os clientes ao inicializar
+        loadClientes();
+        
+        // Adiciona listener para o botão de WhatsApp
+        clienteWhatsappBtn.addEventListener('click', function() {
+            const numero = clienteWhatsapp.textContent;
+            abrirWhatsApp(numero);
+        });
+    }
+
+    /**
+     * Carrega os clientes do Airtable e atualiza a interface
+     */
+    function loadClientes() {
+        // Mostra o indicador de carregamento
+        clientesLoading.classList.remove('hidden');
+        clientesList.innerHTML = '';
+        clientesEmpty.classList.add('hidden');
+        clientesError.textContent = '';
+        
+        // Reseta a visualização de detalhes
+        resetClienteDetails();
+        
+        // Busca os clientes usando o serviço Airtable
+        window.airtableService.fetchClientes(function(err, clientes) {
+            // Esconde o indicador de carregamento
+            clientesLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                clientesError.textContent = 'Erro ao carregar os clientes. Tente novamente mais tarde.';
+                return;
+            }
+            
+            if (clientes.length === 0) {
+                // Exibe mensagem de lista vazia
+                clientesEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Preenche a lista de clientes
+            renderClientesList(clientes);
+        });
+    }
+
+    /**
+     * Renderiza a lista de clientes
+     * @param {Array} clientes - Lista de clientes a serem exibidos
+     */
+    function renderClientesList(clientes) {
+        // Limpa a lista atual
+        clientesList.innerHTML = '';
+        
+        // Adiciona cada cliente à lista
+        clientes.forEach(cliente => {
+            const li = document.createElement('li');
+            li.textContent = cliente['Nome Completo'] || 'Cliente sem nome';
+            li.setAttribute('data-id', cliente.id);
+            
+            // Adiciona classe 'active' se for o cliente selecionado
+            if (cliente.id === selectedClienteId) {
+                li.classList.add('active');
+            }
+            
+            // Adiciona listener para selecionar o cliente
+            li.addEventListener('click', function() {
+                // Remove a classe 'active' de todos os itens
+                document.querySelectorAll('#clientes-list li').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Adiciona a classe 'active' ao item clicado
+                this.classList.add('active');
+                
+                // Carrega os detalhes do cliente
+                const clienteId = this.getAttribute('data-id');
+                loadClienteDetails(clienteId, cliente);
+            });
+            
+            // Adiciona o item à lista
+            clientesList.appendChild(li);
+        });
+    }
+
+    /**
+     * Carrega os detalhes de um cliente específico
+     * @param {string} clienteId - ID do cliente
+     * @param {Object} clienteData - Dados do cliente
+     */
+    function loadClienteDetails(clienteId, clienteData) {
+        // Armazena o ID do cliente selecionado
+        selectedClienteId = clienteId;
+        
+        // Esconde o placeholder e mostra o conteúdo
+        clienteDetailsPlaceholder.classList.add('hidden');
+        clienteDetailsContent.classList.remove('hidden');
+        
+        // Preenche os dados básicos do cliente
+        clienteNome.textContent = clienteData['Nome Completo'] || 'N/A';
+        clienteWhatsapp.textContent = clienteData['Número WhatsApp'] || 'N/A';
+        
+        // Carrega o histórico de compras
+        loadHistoricoCompras(clienteId);
+    }
+
+    /**
+     * Carrega o histórico de compras de um cliente
+     * @param {string} clienteId - ID do cliente
+     */
+    function loadHistoricoCompras(clienteId) {
+        // Mostra o indicador de carregamento
+        historicoLoading.classList.remove('hidden');
+        historicoTableBody.innerHTML = '';
+        historicoEmpty.classList.add('hidden');
+        
+        // Busca o histórico usando o serviço Airtable
+        window.airtableService.fetchHistoricoCompras(clienteId, function(err, compras) {
+            // Esconde o indicador de carregamento
+            historicoLoading.classList.add('hidden');
+            
+            if (err) {
+                // Exibe mensagem de erro
+                historicoTableBody.innerHTML = '<tr><td colspan="4">Erro ao carregar histórico.</td></tr>';
+                return;
+            }
+            
+            if (compras.length === 0) {
+                // Exibe mensagem de histórico vazio
+                historicoEmpty.classList.remove('hidden');
+                return;
+            }
+            
+            // Preenche a tabela de histórico
+            renderHistoricoTable(compras);
+        });
+    }
+
+    /**
+     * Renderiza a tabela de histórico de compras
+     * @param {Array} compras - Lista de compras a serem exibidas
+     */
+    function renderHistoricoTable(compras) {
+        // Limpa a tabela atual
+        historicoTableBody.innerHTML = '';
+        
+        // Adiciona cada compra à tabela
+        compras.forEach(compra => {
+            const row = document.createElement('tr');
+            
+            // Formata a data de compra
+            const dataCompra = compra['Data Compra'] 
+                ? new Date(compra['Data Compra']).toLocaleDateString('pt-BR') 
+                : '-';
+            
+            // Cria as células da linha
+            row.innerHTML = `
+                <td>${dataCompra}</td>
+                <td>${compra['Tipo Mapa'] || '-'}</td>
+                <td>R$ ${compra['Preço Registrado']?.toFixed(2) || 'N/A'}</td>
+                <td>${compra['Status'] || '-'}</td>
+            `;
+            
+            // Adiciona a linha à tabela
+            historicoTableBody.appendChild(row);
+        });
+    }
+
+    /**
+     * Reseta a visualização de detalhes do cliente
+     */
+    function resetClienteDetails() {
+        clienteDetailsPlaceholder.classList.remove('hidden');
+        clienteDetailsContent.classList.add('hidden');
+        selectedClienteId = null;
+    }
+
+    // Exporta as funções para uso em outros módulos
+    window.clientesModule = {
+        init: initClientes,
+        loadClientes: loadClientes
+    };
+
+    /**
+     * Arquivo principal da aplicação
+     * Gerencia a inicialização dos módulos e a navegação entre seções
+     */
+
+    // Referências aos elementos de navegação
+    const navFilaMapas = document.getElementById('nav-fila-mapas');
+    const navRegistrarVenda = document.getElementById('nav-registrar-venda');
+    const navClientes = document.getElementById('nav-clientes');
+
+    // Referências às seções de conteúdo
+    const filaMapasSection = document.getElementById('fila-mapas-section');
+    const registrarVendaSection = document.getElementById('registrar-venda-section');
+    const clientesSection = document.getElementById('clientes-section');
+
+    /**
+     * Inicializa a aplicação quando o DOM estiver carregado
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa o módulo de autenticação
+        window.initAuth();
+        
+        // Configura a navegação
+        setupNavigation();
+    });
+
+    /**
+     * Configura os eventos de navegação entre seções
+     */
+    function setupNavigation() {
+        // Navegação para Fila de Mapas
+        navFilaMapas.addEventListener('click', function() {
+            showSection(filaMapasSection, navFilaMapas);
+        });
+        
+        // Navegação para Registrar Venda
+        navRegistrarVenda.addEventListener('click', function() {
+            showSection(registrarVendaSection, navRegistrarVenda);
+        });
+        
+        // Navegação para Clientes
+        navClientes.addEventListener('click', function() {
+            showSection(clientesSection, navClientes);
+        });
+    }
+
+    /**
+     * Mostra uma seção específica e esconde as outras
+     * @param {HTMLElement} section - Seção a ser mostrada
+     * @param {HTMLElement} navButton - Botão de navegação a ser marcado como ativo
+     */
+    function showSection(section, navButton) {
+        // Esconde todas as seções
+        filaMapasSection.classList.add('hidden');
+        registrarVendaSection.classList.add('hidden');
+        clientesSection.classList.add('hidden');
+        
+        // Remove a classe 'active' de todos os botões de navegação
+        navFilaMapas.classList.remove('active');
+        navRegistrarVenda.classList.remove('active');
+        navClientes.classList.remove('active');
+        
+        // Mostra a seção selecionada
+        section.classList.remove('hidden');
+        
+        // Marca o botão de navegação como ativo
+        navButton.classList.add('active');
+    }
+
+    /**
+     * Carrega os dados iniciais após o login
+     * Chamada pelo módulo de autenticação quando o usuário está autenticado
+     */
+    function loadInitialData() {
+        // Inicializa os módulos
+        window.filaMapasModule.init();
+        window.registrarVendaModule.init();
+        window.clientesModule.init();
+        
+        // Por padrão, mostra a seção de Fila de Mapas
+        showSection(filaMapasSection, navFilaMapas);
+    }
+
+    // Exporta a função para uso no módulo de autenticação
+    window.loadInitialData = loadInitialData;
+    </script>
+</body>
+</html>

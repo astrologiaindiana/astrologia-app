@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Firebase SDKs (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astrologia Indiana</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <!-- Airtable SDK -->
     <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.1/build/airtable.browser.js"></script>
     <!-- Fontes -->
@@ -3093,5 +3094,23 @@
     // Exporta a função para uso no módulo de autenticação
     window.loadInitialData = loadInitialData;
     </script>
+    <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAngAB_zoXr5lsi1N8WocVJeHFq6QjdUUs",
+    authDomain: "astrologia-indiana-app.firebaseapp.com",
+    projectId: "astrologia-indiana-app",
+    storageBucket: "astrologia-indiana-app.firebasestorage.app",
+    messagingSenderId: "1055729827966",
+    appId: "1:1055729827966:web:51954b0cabee762653d82f",
+    measurementId: "G-E1BSNLPJJF"
+  };
+
+  // Inicialização compatível com os scripts incluídos
+  firebase.initializeApp(firebaseConfig);
+
+  // Apenas para teste (pode apagar depois):
+  console.log("🔥 Firebase conectado com sucesso!");
+</script>
+
 </body>
 </html>
